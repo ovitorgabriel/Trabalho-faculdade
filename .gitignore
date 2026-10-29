@@ -1,0 +1,13 @@
+# Visual Studio / .NET
+.vs/
+bin/
+obj/
+*.user
+*.suo
+TestResults/
+
+# Nunca versionar segredos (connection string do banco, chaves)
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+*.pfx

@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\AprenderMais.Dominio\AprenderMais.Dominio.csproj" />
+    <ProjectReference Include="..\AprenderMais.Aplicacao\AprenderMais.Aplicacao.csproj" />
+    <ProjectReference Include="..\AprenderMais.Infraestrutura\AprenderMais.Infraestrutura.csproj" />
+  </ItemGroup>
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="AprenderMais.Aplicacao/AprenderMais.Aplicacao.csproj" />
+  <Project Path="AprenderMais.Desktop/AprenderMais.Desktop.csproj" />
+  <Project Path="AprenderMais.Dominio/AprenderMais.Dominio.csproj" />
+  <Project Path="AprenderMais.Infraestrutura/AprenderMais.Infraestrutura.csproj" />
+  <Project Path="AprenderMais.Testes/AprenderMais.Testes.csproj" />
+</Solution>
