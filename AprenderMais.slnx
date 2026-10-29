@@ -4,4 +4,5 @@
   <Project Path="AprenderMais.Dominio/AprenderMais.Dominio.csproj" />
   <Project Path="AprenderMais.Infraestrutura/AprenderMais.Infraestrutura.csproj" />
   <Project Path="AprenderMais.Testes/AprenderMais.Testes.csproj" />
+  <Project Path="AprenderMais.Web/AprenderMais.Web.csproj" />
 </Solution>

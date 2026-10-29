@@ -54,3 +54,11 @@ correspondentes em `Program.cs`. Telas, serviços e regras não mudam.
 
 Atividades, entrega de respostas, avaliação com nota, progresso, certificados e
 relatórios; cadastro de usuários; depois SQL Server (Azure) e a API ASP.NET Core.
+
+## Versão web (Vercel)
+
+`AprenderMais.Web` é uma versão Blazor WebAssembly que reaproveita Domínio, Aplicação e
+Infraestrutura. Roda inteira no navegador (dados em memória, reiniciam ao recarregar).
+
+- Gerar o site estático: `publicar-web.cmd` (atualiza a pasta `dist/`, que deve ser commitada).
+- Deploy: importe o repositório na Vercel. O `vercel.json` já define `dist` como saída e não precisa de build.

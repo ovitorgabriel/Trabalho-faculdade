@@ -1,0 +1,66 @@
+@inject AutenticacaoService Autenticacao
+
+<main class="login">
+    <form class="card login-card" @onsubmit="EntrarAsync">
+        <h1>Aprender Mais</h1>
+        <p class="muted">Entre com sua conta para continuar</p>
+
+        <label for="email">E-mail</label>
+        <input id="email" type="email" autocomplete="username" @bind="_email" />
+
+        <label for="senha">Senha</label>
+        <input id="senha" type="password" autocomplete="current-password" @bind="_senha" />
+
+        @if (_erro is not null)
+        {
+            <p class="erro" role="alert">@_erro</p>
+        }
+
+        <button class="primario" type="submit" disabled="@_carregando">
+            @(_carregando ? "Entrando..." : "Entrar")
+        </button>
+
+        <p class="muted demo">
+            Contas de demonstração (senha: 123456)<br />
+            aluno@aprendermais.com<br />
+            secretaria@aprendermais.com<br />
+            admin@aprendermais.com
+        </p>
+    </form>
+</main>
+
+@code {
+    [Parameter] public EventCallback OnEntrou { get; set; }
+
+    private string _email = "";
+    private string _senha = "";
+    private string? _erro;
+    private bool _carregando;
+
+    private async Task EntrarAsync()
+    {
+        _erro = null;
+        _carregando = true;
+        // Deixa o navegador pintar "Entrando..." antes da verificacao BCrypt (roda na thread da UI).
+        await Task.Delay(50);
+
+        try
+        {
+            await Autenticacao.EntrarAsync(_email, _senha);
+            await OnEntrou.InvokeAsync();
+        }
+        catch (DominioException ex)
+        {
+            _erro = ex.Message;
+            _senha = "";
+        }
+        catch (Exception ex)
+        {
+            _erro = "Erro inesperado: " + ex.Message;
+        }
+        finally
+        {
+            _carregando = false;
+        }
+    }
+}

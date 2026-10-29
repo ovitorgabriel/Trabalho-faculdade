@@ -1,0 +1,256 @@
+@inject SessaoUsuario Sessao
+@inject ConteudoService Conteudos
+@inject MatriculaService Matriculas
+@inject UsuarioService Usuarios
+@inject IJSRuntime JS
+
+@{
+    var usuario = Sessao.Atual!;
+}
+
+<header class="topo">
+    <strong>@usuario.Nome &nbsp;-&nbsp; @RotuloPerfil(usuario.Perfil)</strong>
+    <button @onclick="OnSair">Sair da conta</button>
+</header>
+
+<main class="conteudo">
+    <nav class="abas" role="tablist">
+        @foreach (var aba in _abas)
+        {
+            var a = aba;
+            <button role="tab" class="@(_abaAtual == a ? "ativa" : "")" @onclick="() => _abaAtual = a">@a</button>
+        }
+    </nav>
+
+    @if (_mensagem is not null)
+    {
+        <div class="@("aviso " + (_mensagemErro ? "aviso-erro" : "aviso-ok"))" role="status">
+            @_mensagem
+            <button class="fechar" aria-label="Fechar aviso" @onclick="() => _mensagem = null">×</button>
+        </div>
+    }
+
+    @if (_abaAtual == AbaCatalogo)
+    {
+        <div class="tabela-wrap">
+            <table>
+                <thead><tr><th>Título</th><th>Categoria</th><th>Nível</th><th>Duração</th><th>Aulas</th>@if (usuario is Aluno) {<th></th>}</tr></thead>
+                <tbody>
+                    @foreach (var c in _catalogo)
+                    {
+                        <tr>
+                            <td>@c.Titulo</td><td>@c.Categoria</td><td>@c.Nivel</td><td>@c.Duracao</td><td>@c.Aulas</td>
+                            @if (usuario is Aluno)
+                            {
+                                <td><button class="primario" @onclick="() => MatricularAsync(c)">Matricular-me</button></td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (_abaAtual == AbaMatriculas)
+    {
+        <div class="tabela-wrap">
+            <table>
+                <thead><tr><th>Conteúdo</th><th>Situação</th><th>Progresso</th><th>Matriculado em</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var m in _minhasMatriculas)
+                    {
+                        <tr>
+                            <td>@m.Conteudo</td><td>@m.Status</td><td>@m.ProgressoTexto</td><td>@m.DataMatricula</td>
+                            <td><button @onclick="() => CancelarAsync(m)">Cancelar matrícula</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            @if (_minhasMatriculas.Count == 0) { <p class="muted vazio">Você ainda não tem matrículas.</p> }
+        </div>
+    }
+    else if (_abaAtual == AbaGestao)
+    {
+        <div class="acoes"><button class="primario" @onclick="() => _novo = new()">Novo conteúdo...</button></div>
+
+        @if (_novo is not null)
+        {
+            <form class="card novo" @onsubmit="SalvarNovoAsync">
+                <h2>Novo conteúdo</h2>
+                <label>Título <input @bind="_novo.Titulo" /></label>
+                <label>Categoria <input @bind="_novo.Categoria" /></label>
+                <label>Nível
+                    <select @bind="_novo.Nivel">
+                        <option>Iniciante</option><option>Intermediário</option><option>Avançado</option>
+                    </select>
+                </label>
+                <label>Duração <input @bind="_novo.Duracao" /></label>
+                <label>Aulas <input type="number" min="0" max="500" @bind="_novo.Aulas" /></label>
+                <label>Descrição <textarea rows="4" @bind="_novo.Descricao"></textarea></label>
+                <div class="acoes">
+                    <button class="primario" type="submit">Salvar</button>
+                    <button type="button" @onclick="() => _novo = null">Cancelar</button>
+                </div>
+            </form>
+        }
+
+        <div class="tabela-wrap">
+            <table>
+                <thead><tr><th>Título</th><th>Categoria</th><th>Nível</th><th>Duração</th><th>Aulas</th><th>Situação</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var c in _gestao)
+                    {
+                        <tr>
+                            <td>@c.Titulo</td><td>@c.Categoria</td><td>@c.Nivel</td><td>@c.Duracao</td><td>@c.Aulas</td><td>@c.Situacao</td>
+                            <td><button @onclick="() => AlternarConteudoAsync(c)">@(c.Ativo ? "Desativar" : "Ativar")</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else if (_abaAtual == AbaUsuarios)
+    {
+        <div class="tabela-wrap">
+            <table>
+                <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Situação</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var u in _usuarios)
+                    {
+                        <tr>
+                            <td>@u.Nome</td><td>@u.Email</td><td>@u.Perfil</td><td>@u.Situacao</td>
+                            <td><button @onclick="() => AlternarUsuarioAsync(u)">@(u.Ativo ? "Desativar" : "Ativar")</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</main>
+
+@code {
+    private const string AbaCatalogo = "Catálogo de conteúdos";
+    private const string AbaMatriculas = "Minhas matrículas";
+    private const string AbaGestao = "Gerenciar conteúdos";
+    private const string AbaUsuarios = "Usuários";
+
+    [Parameter] public EventCallback OnSair { get; set; }
+
+    private readonly List<string> _abas = new() { AbaCatalogo };
+    private string _abaAtual = AbaCatalogo;
+
+    private IReadOnlyList<ConteudoDto> _catalogo = Array.Empty<ConteudoDto>();
+    private IReadOnlyList<MatriculaDto> _minhasMatriculas = Array.Empty<MatriculaDto>();
+    private IReadOnlyList<ConteudoDto> _gestao = Array.Empty<ConteudoDto>();
+    private IReadOnlyList<UsuarioDto> _usuarios = Array.Empty<UsuarioDto>();
+
+    private NovoConteudoForm? _novo;
+    private string? _mensagem;
+    private bool _mensagemErro;
+
+    private class NovoConteudoForm
+    {
+        public string Titulo { get; set; } = "";
+        public string Categoria { get; set; } = "";
+        public string Nivel { get; set; } = "Iniciante";
+        public string Duracao { get; set; } = "10h";
+        public int Aulas { get; set; } = 10;
+        public string Descricao { get; set; } = "";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        switch (Sessao.Atual!.Perfil)
+        {
+            case PerfilUsuario.Aluno: _abas.Add(AbaMatriculas); break;
+            case PerfilUsuario.Secretaria: _abas.Add(AbaGestao); break;
+            case PerfilUsuario.Admin: _abas.Add(AbaUsuarios); break;
+        }
+
+        await ExecutarAsync(RecarregarAsync);
+    }
+
+    private async Task RecarregarAsync()
+    {
+        var usuario = Sessao.Atual!;
+        _catalogo = await Conteudos.ListarAtivosAsync();
+
+        if (usuario is Aluno) _minhasMatriculas = await Matriculas.ListarDoAlunoAsync(usuario);
+        if (usuario is Secretaria) _gestao = await Conteudos.ListarTodosAsync(usuario);
+        if (usuario is Administrador) _usuarios = await Usuarios.ListarAsync(usuario);
+    }
+
+    private Task MatricularAsync(ConteudoDto c) => ExecutarAsync(async () =>
+    {
+        await Matriculas.MatricularAsync(c.Id, Sessao.Atual!);
+        Informar($"Matrícula realizada em \"{c.Titulo}\".");
+        await RecarregarAsync();
+    });
+
+    private async Task CancelarAsync(MatriculaDto m)
+    {
+        if (!await JS.InvokeAsync<bool>("confirm", $"Cancelar a matrícula em \"{m.Conteudo}\"?"))
+            return;
+
+        await ExecutarAsync(async () =>
+        {
+            await Matriculas.CancelarAsync(m.IdMatricula, Sessao.Atual!);
+            await RecarregarAsync();
+        });
+    }
+
+    private Task SalvarNovoAsync() => ExecutarAsync(async () =>
+    {
+        var n = _novo!;
+        await Conteudos.CriarAsync(
+            new NovoConteudoDto(n.Titulo, n.Descricao, n.Categoria, n.Nivel, n.Duracao, n.Aulas),
+            Sessao.Atual!);
+        _novo = null;
+        await RecarregarAsync();
+    });
+
+    private Task AlternarConteudoAsync(ConteudoDto c) => ExecutarAsync(async () =>
+    {
+        await Conteudos.AlterarAtivoAsync(c.Id, !c.Ativo, Sessao.Atual!);
+        await RecarregarAsync();
+    });
+
+    private Task AlternarUsuarioAsync(UsuarioDto u) => ExecutarAsync(async () =>
+    {
+        await Usuarios.AlterarAtivoAsync(u.Id, !u.Ativo, Sessao.Atual!);
+        await RecarregarAsync();
+    });
+
+    /// <summary>Executa uma acao e mostra erros de regra de negocio sem derrubar a pagina.</summary>
+    private async Task ExecutarAsync(Func<Task> acao)
+    {
+        try
+        {
+            _mensagem = null;
+            await acao();
+        }
+        catch (DominioException ex)
+        {
+            _mensagem = ex.Message;
+            _mensagemErro = true;
+        }
+        catch (Exception ex)
+        {
+            _mensagem = "Erro inesperado: " + ex.Message;
+            _mensagemErro = true;
+        }
+    }
+
+    private void Informar(string texto)
+    {
+        _mensagem = texto;
+        _mensagemErro = false;
+    }
+
+    private static string RotuloPerfil(PerfilUsuario perfil) => perfil switch
+    {
+        PerfilUsuario.Aluno => "Aluno",
+        PerfilUsuario.Secretaria => "Secretaria",
+        PerfilUsuario.Admin => "Administrador",
+        _ => perfil.ToString()
+    };
+}

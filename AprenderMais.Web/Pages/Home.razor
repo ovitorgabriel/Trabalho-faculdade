@@ -1,0 +1,22 @@
+﻿@page "/"
+@inject SessaoUsuario Sessao
+@inject AutenticacaoService Autenticacao
+
+<PageTitle>Aprender Mais</PageTitle>
+
+@if (Sessao.Atual is null)
+{
+    <Login OnEntrou="StateHasChanged" />
+}
+else
+{
+    <Painel OnSair="Sair" />
+}
+
+@code {
+    private void Sair()
+    {
+        Autenticacao.Sair();
+        StateHasChanged();
+    }
+}
