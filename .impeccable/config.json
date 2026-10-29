@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "AprenderMais.Web/wwwroot/css/app.css"
+        ],
+        "createdAt": "2026-10-29T22:21:30.621Z",
+        "reason": "Claude: falso positivo - sublinhado de aba com border-radius 0, sem card arredondado"
+      }
+    ]
+  }
+}
