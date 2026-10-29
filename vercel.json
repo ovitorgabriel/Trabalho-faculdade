@@ -1,11 +1,8 @@
 ﻿{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": "",
-  "installCommand": "",
+  "buildCommand": null,
+  "installCommand": null,
   "outputDirectory": "dist",
-  "cleanUrls": true,
-  "rewrites": [{ "source": "/((?!_framework|_content|css|.*\\..*).*)", "destination": "/index.html" }],
   "headers": [
     {
       "source": "/_framework/(.*)",
