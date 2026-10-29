@@ -5,4 +5,5 @@ if exist dist rmdir /s /q dist
 dotnet publish AprenderMais.Web\AprenderMais.Web.csproj -c Release -o publish-tmp || exit /b 1
 xcopy /E /I /Y publish-tmp\wwwroot dist >nul
 rmdir /s /q publish-tmp
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0normalizar-dist.ps1"
 echo Pronto: dist\ atualizado.
